@@ -3,9 +3,23 @@
 
 # 目录
 - [环境配置](#环境配置)
+- [构建](#构建)
+- [算法](#算法)
+
 
 # 环境配置
 - [x] Visual Studio Code
 - [x] minGW64 g++15.1.0 gdb 16.2
 - [x] CMake 4.1.0-rc1
 - [x] C++11
+
+# 构建
+- [x] 使用CMake构建项目
+```cmake
+cmake -G "MinGW Makefiles" -B build -S . && cmake --build .
+```
+- [x] 使用gdb调试程序
+
+# 算法
+- [x] [递归](./001-Recursion/src/main.cpp) 构建算法的基础，放第一个！(O v O)
+

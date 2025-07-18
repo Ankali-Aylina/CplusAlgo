@@ -1,5 +1,5 @@
 # 创建排序算法项目
-project(envTest)
+project(001-Recursion)
 
 # 添加包含目录
 include_directories(
