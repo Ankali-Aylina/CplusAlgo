@@ -10,6 +10,7 @@ bool nameCheck(const string &name)
 
     // 检查非法字符 (Windows和Linux通用)
     const std::string invalid_chars = "<>:\"/\\|?*";
+    // 遍历name中的每个字符
     for (char c : name)
     {
         if (invalid_chars.find(c) != std::string::npos)
@@ -122,7 +123,7 @@ optional<fs::path> findAimFolder(const fs::path &start_path, const string &targe
     while (current_depth++ < max_depth && current != root)
     {
         // 调试输出当前检查的路径 (实际使用时可以移除)
-        std::cout << "检查: " << current << std::endl;
+        // std::cout << "检查: " << current << std::endl;
 
         // 检查当前目录名是否匹配目标
         if (current.filename() == target_name)
@@ -177,45 +178,125 @@ optional<fs::path> findAimFolder(const fs::path &start_path, const string &targe
 
 void copyFiles(const fs::path &src, const fs::path &dst)
 {
-    // 存储异步任务的结果
-    std::vector<std::future<void>> futures;
+    std::vector<std::future<void>> futures; // 存储异步任务的结果
 
-    // 遍历源目录中的所有条目
+    // 原子计数器：用于线程安全的进度跟踪
+    std::atomic<int> filesCopied = 0;       // 已复制的文件数
+    std::atomic<int> directoriesCopied = 0; // 已复制的目录数
+    std::atomic<int> tasksCompleted = 0;    // 新增：跟踪完成的任务数（含失败）
+    std::atomic<int> copyErrors = 0;        // 新增：错误计数器
+    std::mutex errorMutex;                  // 新增：保护错误输出
+
+    // 获取开始时间（用于计算速度）
+    auto startTime = std::chrono::steady_clock::now();
+
+    auto showProgress = [&]()
+    {
+        const int totalTasks = futures.size();
+        const int completed = tasksCompleted; // 使用tasksCompleted替代filesCopied+directoriesCopied
+
+        auto duration = std::chrono::steady_clock::now() - startTime;
+        double seconds = std::chrono::duration<double>(duration).count();
+        double progress = (totalTasks > 0) ? (100.0 * completed / totalTasks) : 0.0;
+        double speed = (seconds > 0.1) ? (filesCopied / seconds) : 0.0;
+
+        std::cout << "\r进度: " << std::fixed << std::setprecision(1)
+                  << progress << "% | "
+                  << "文件: " << filesCopied
+                  << " | 目录: " << directoriesCopied
+                  << " | 错误: " << copyErrors // 显示错误计数
+                  << " | 速度: " << std::setprecision(1) << speed << " 文件/秒"
+                  << " | 任务: " << completed << "/" << totalTasks
+                  << std::flush;
+    };
+
+    // 确保目标目录存在（加入异常处理）
+    try
+    {
+        fs::create_directories(dst);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "创建目标目录失败: " << dst << " - " << e.what() << std::endl;
+        return;
+    }
+
     for (const auto &entry : fs::directory_iterator(src))
     {
-        // 构建目标路径
         auto target = dst / entry.path().filename();
 
-        // 处理目录
         if (fs::is_directory(entry))
         {
-            // 创建目标目录 (确保父目录存在)
-            fs::create_directories(target);
-
-            // 创建异步任务复制子目录 (使用标准fs::copy)
-            futures.push_back(std::async(std::launch::async, [=]
+            futures.push_back(std::async(std::launch::async, [=, &directoriesCopied, &tasksCompleted, &copyErrors, &errorMutex]
                                          {
-                // 递归复制整个子目录
-                fs::copy(entry, target, fs::copy_options::recursive | fs::copy_options::overwrite_existing); }));
+                                             try
+                                             {
+                                                 // 尝试创建子目录
+                                                 fs::create_directories(target);
+                                                 // 递归复制（可能抛出异常）
+                                                 fs::copy(entry, target, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+                                                 directoriesCopied++;
+                                             }
+                                             catch (const std::exception &e)
+                                             {
+                                                 std::lock_guard<std::mutex> lock(errorMutex);
+                                                 std::cerr << "\n目录复制错误: " << entry.path() << " -> " << target
+                                                           << " - " << e.what() << std::endl;
+                                                 copyErrors++;
+                                             }
+                                             tasksCompleted++; // 无论成功失败都标记任务完成
+                                         }));
         }
-        // 处理普通文件
         else if (fs::is_regular_file(entry))
         {
-            // 创建异步任务复制文件
-            futures.push_back(std::async(std::launch::async, [=]
+            futures.push_back(std::async(std::launch::async, [=, &filesCopied, &tasksCompleted, &copyErrors, &errorMutex]
                                          {
-                // 复制单个文件
-                fs::copy_file(entry, target, fs::copy_options::overwrite_existing); }));
+                                             try
+                                             {
+                                                 fs::copy_file(entry, target, fs::copy_options::overwrite_existing);
+                                                 filesCopied++;
+                                             }
+                                             catch (const std::exception &e)
+                                             {
+                                                 std::lock_guard<std::mutex> lock(errorMutex);
+                                                 std::cerr << "\n文件复制错误: " << entry.path() << " -> " << target
+                                                           << " - " << e.what() << std::endl;
+                                                 copyErrors++;
+                                             }
+                                             tasksCompleted++; // 无论成功失败都标记任务完成
+                                         }));
         }
     }
 
-    // 等待所有异步任务完成
+    std::cout << "开始复制，总任务数: " << futures.size() << "\n";
+
+    // 修改循环条件：基于tasksCompleted而非成功计数
+    while (tasksCompleted < static_cast<int>(futures.size()))
+    {
+        showProgress();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    showProgress();
+    std::cout << "\n复制完成! ";
+
+    // 处理异步任务中的异常（防止未捕获异常传播）
     for (auto &f : futures)
     {
-        f.get();
+        try
+        {
+            f.get(); // 获取异步结果（可能重新抛出异常）
+        }
+        catch (const std::exception &e)
+        {
+            // 此处异常已在任务内处理过，此处仅确保不会终止程序
+        }
     }
-}
 
+    auto endTime = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    std::cout << "总耗时: " << duration.count() / 1000.0 << " 秒 | 错误总数: " << copyErrors << "\n";
+}
 void createCMakeLists(const fs::path &parent_path, const string &projectName)
 {
     // 修正路径：在项目目录下创建文件
@@ -263,7 +344,14 @@ int main()
     cout << "请输入要创建的项目名称:";
     getline(cin, projectName);
     cout << "\n检查项目名称是否合法..." << endl;
-    nameCheck(projectName);
+
+    if (!nameCheck(projectName))
+    {
+        cout << "项目名称不合法，请重新输入" << endl;
+        cin.get();
+        return 0;
+    }
+    cout << "项目名称合法" << endl;
     cout << "定位路径..." << endl;
     fs::path currentPath = fs::current_path();
     auto targetFolder = "CplusAlgo";
@@ -280,8 +368,17 @@ int main()
     auto projectPath = *targetPath / projectName;
     cout << "项目路径:" << projectPath << endl;
 
+    cout << "路径定位成功" << endl;
+
     cout << "创建文件夹..." << endl;
-    createFolder(*targetPath, projectName);
+    if (!createFolder(*targetPath, projectName))
+    {
+        cout << "创建文件夹失败" << endl;
+        cin.get();
+        return 0;
+    }
+    cout << "文件夹创建成功" << endl;
+
     cout << "复制文件..." << endl;
     copyFiles(*templatePath, projectPath);
     cout << "创建CMakeLists.txt..." << endl;
@@ -289,7 +386,9 @@ int main()
     cout << "创建readme.md..." << endl;
     createReadme(projectPath, projectName);
     cout << "项目创建完成!!!\n"
-         << "(^_^)\n"
+         << endl
+         << "(=^._.^=)∫ 喵呜~\n"
+         << endl
          << "点击任意键关闭程序..." << endl;
 
     cin.get();

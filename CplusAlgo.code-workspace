@@ -85,7 +85,8 @@
       "mutex": "cpp",
       "semaphore": "cpp",
       "stop_token": "cpp",
-      "thread": "cpp"
+      "thread": "cpp",
+      "filesystem": "cpp"
     },
     // 编辑器行为
     "editor.formatOnSave": true, // 保存时自动格式化代码

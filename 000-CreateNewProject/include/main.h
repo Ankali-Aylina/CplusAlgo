@@ -8,6 +8,9 @@
 #include <future>    // 异步操作支持
 #include <vector>    // 动态数组容器
 #include <fstream>   // 文件输入输出流
+#include <atomic>    // 原子操作
+#include <thread>    // 多线程支持
+#include <iomanip>   // 格式化输出s
 
 namespace fs = std::filesystem; // 别名简化
 using namespace std;
