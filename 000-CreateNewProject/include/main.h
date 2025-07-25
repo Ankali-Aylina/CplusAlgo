@@ -45,6 +45,11 @@ optional<fs::path> findAimFolder(
 /// @param dst 目标路径
 void copyFiles(const fs::path &src, const fs::path &dst);
 
+/// @brief 创建文件
+/// @param path 文件路径
+/// @param content 文件内容
+void createFile(const fs::path &path, const std::string &content);
+
 /// @brief 创建CMakeLists.txt文件
 /// @param parent_path 创建路径
 /// @param projectName 项目名称

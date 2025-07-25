@@ -297,43 +297,56 @@ void copyFiles(const fs::path &src, const fs::path &dst)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "总耗时: " << duration.count() / 1000.0 << " 秒 | 错误总数: " << copyErrors << "\n";
 }
-void createCMakeLists(const fs::path &parent_path, const string &projectName)
-{
-    // 修正路径：在项目目录下创建文件
-    fs::path filePath = parent_path / "CMakeLists.txt";
-    std::ofstream cmakeFile(filePath);
 
-    if (!cmakeFile.is_open())
+void createFile(const fs::path &path, const std::string &content)
+{
+    ofstream file(path);
+    if (!file)
     {
-        std::cerr << "Error: 无法在" << filePath << "下创建CMakeLists.txt 文件\n";
+        cerr << "Error: 无法在 " << path << "下创建文件" << endl;
         return;
     }
-    cmakeFile << "project(" << projectName << ")\n\n";
-    cmakeFile << "include_directories(\n\t${CMAKE_CURRENT_SOURCE_DIR}/include\n)\n\n";
-    cmakeFile << "file(GLOB SOURCES \"src/*.cpp\")\n\n";
-    cmakeFile << "add_executable(${PROJECT_NAME} ${SOURCES})\n\n";
-    cmakeFile << "set_target_properties(${PROJECT_NAME} PROPERTIES\n"
-              << "\tOUTPUT_NAME \"${PROJECT_NAME}\"\n"
-              << "\tRUNTIME_OUTPUT_DIRECTORY \"${CMAKE_BINARY_DIR}/${PROJECT_NAME}\"\n"
-              << ")\n";
-    cmakeFile.close();
+    file << content;
+}
+
+void createCMakeLists(const fs::path &parent_path, const string &projectName)
+{
+    const string cmakeTemplate =
+        R"(project()" + projectName + R"()
+
+# 添加包含目录
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# 收集所有源文件
+file(GLOB SOURCES "src/*.cpp")
+
+# 创建可执行文件
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+# 设置目标属性
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME "${PROJECT_NAME}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}"
+)
+)";
+    createFile(parent_path / "CMakeLists.txt", cmakeTemplate);
 }
 
 void createReadme(const fs::path &parent_path, const string &projectName)
 {
-    fs::path filePath = parent_path / "readme.md";
-    std::ofstream readme(filePath);
+    const std::string content =
+        R"(# )" + projectName + R"(
 
-    if (!readme.is_open())
-    {
-        std::cerr << "Error: 无法在" << filePath << "下创建CMakeLists.txt 文件\n";
-        return;
-    }
-    readme << "# " << projectName << "\n\n";
-    readme << "## 简介\n\n";
-    readme << "## 需求\n\n";
-    readme << "## 练习\n";
-    readme.close();
+## 简介
+
+## 需求
+
+## 练习
+)";
+
+    createFile(parent_path / "readme.md", content);
 }
 
 int main()
@@ -347,8 +360,9 @@ int main()
 
     if (!nameCheck(projectName))
     {
-        cout << "项目名称不合法，请重新输入" << endl;
+        cout << "项目名称不合法!" << "点击任意键退出程序..." << endl;
         cin.get();
+
         return 0;
     }
     cout << "项目名称合法" << endl;
@@ -373,7 +387,7 @@ int main()
     cout << "创建文件夹..." << endl;
     if (!createFolder(*targetPath, projectName))
     {
-        cout << "创建文件夹失败" << endl;
+        cout << "创建文件夹失败" << "点击任意键退出程序..." << endl;
         cin.get();
         return 0;
     }
