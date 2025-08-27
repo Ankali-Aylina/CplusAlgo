@@ -98,7 +98,6 @@
     "recommendations": [ // 推荐安装的扩展
       "ms-vscode.cpptools", // C/C++语言支持
       "ms-vscode.cmake-tools",
-      "twxs.cmake",
       "ms-vscode.cpptools-extension-pack", // C++扩展包
       "ms-vscode.makefile-tools" // Makefile工具
     ]
