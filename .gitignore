@@ -32,11 +32,6 @@ Release/
 x64/
 x86/
 
-
-# VS Code 配置
-!.vscode/launch.json
-!.vscode/extensions.json
-
 # 数据文件
 *.json
 *.csv

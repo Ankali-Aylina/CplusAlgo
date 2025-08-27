@@ -12,6 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fexec-charset=GBK")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexec-charset=GBK")
 
+if(MSVC)
+    add_compile_options(/utf-8)  # MSVC 下用 UTF-8
+else()
+    add_compile_options(-Wall -fexec-charset=UTF-8)  # 其他编译器用 UTF-8
+endif()
+
 # 设置构建类型（Debug/Release）
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
