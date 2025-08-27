@@ -34,9 +34,6 @@ x86/
 
 
 # VS Code 配置
-.vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
