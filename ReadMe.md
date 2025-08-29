@@ -14,7 +14,7 @@
 - [x] Visual Studio Code
 - [x] minGW64 g++15.1.0 gdb 16.2
 - [x] CMake 4.1.0-rc1
-- [x] C++11
+- [x] C++17
 
 ## 构建
 
