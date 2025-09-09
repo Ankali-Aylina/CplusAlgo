@@ -10,46 +10,5 @@
 *.o
 *.pch
 
-# 调试文件
-*.pdb
-*.idb
-*.ilk
-*.db
-*.opendb
-
-# 项目文件
-*.sln
-*.vcxproj*
-*.filters
-*.user
-
-# 构建目录
+#构建文件夹
 build/
-bin/
-dist/
-Debug/
-Release/
-x64/
-x86/
-
-# 数据文件
-*.csv
-*.dat
-*.log
-
-# 系统文件
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# 备份文件
-*~
-*.bak
-*.swp
-
-# cmake文件
-CMakeCache.txt
-CMakeFiles
-cmake_install.cmake
-[Mm]akefile
-GNUmakefile

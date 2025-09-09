@@ -63,6 +63,8 @@ Windows 10
     cmake -G "MinGW Makefiles" -B build -S . && cmake --build .
     ```
 
+    - PS：需要安装CMake和MinGW,并且将MinGW的bin目录添加到环境变量中。建议在VS code中使用CMake插件，方便调试。
+
 2. 直接运行000-CreateNewProject.exe即可。
 
 ## 注意事项
