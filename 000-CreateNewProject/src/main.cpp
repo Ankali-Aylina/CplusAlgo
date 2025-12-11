@@ -312,12 +312,12 @@ void createFile(const fs::path &path, const std::string &content)
 void createCMakeLists(const fs::path &parent_path, const string &projectName)
 {
     const string cmakeTemplate =
-        R"(#项目名称
+        R"(# 设置最低CMake版本要求
+cmake_minimum_required(VERSION 3.10)
+
+#项目名称
 project()" +
         projectName + R"()
-
-# 设置最低CMake版本要求
-cmake_minimum_required(VERSION 3.10)
 
 # 设置不同配置的输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/bin)
