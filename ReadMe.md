@@ -25,6 +25,7 @@
 - [x] 使用gdb调试程序
 
 ## 使用
+
 - 点击`CplusAlgo.code-workspace`后，运行项目`000-CreateNewProject`开启新项目！
 
 ## 特殊项目
@@ -34,3 +35,4 @@
 ## 算法
 
 - [x] [递归](./001-Recursion/src/main.cpp) 构建算法的基础，放第一个！(O v O)
+- [x] [递推](./002-002-Recursive/src/main.cpp)
