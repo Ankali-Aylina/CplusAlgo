@@ -17,3 +17,9 @@
   std::vector<long long> rabbits;
   long long new_rabbits = rabbits[month - 1] + rabbits[month - 2];
  ```
+
+## 练习
+
+### 题1：在墙角按照规律堆放着一些完全相同的正方体小块儿，只需要知道层数就可以计算所有小块的数量。输入：一个整数n(1 <= n <= 100),代表层数。输出：一个整数，表示这堆小块儿的总量。
+
+- 规律：`f(n) = f(n-1) + n ` 其中：n为层数，`f(1) = 1, n>=2`.
