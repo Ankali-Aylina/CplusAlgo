@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "path": ".",
+      "name": "CplusAlgo Root"
+    },
+    {
       "path": "000-CreateNewProject"
     },
     {
@@ -83,7 +87,7 @@
       "filesystem": "cpp"
     },
     // 编辑器行为
-    "editor.formatOnSave": true, // 保存时自动格式化代码
+    "editor.formatOnSave": true // 保存时自动格式化代码
   },
   "extensions": {
     "recommendations": [ // 推荐安装的扩展
