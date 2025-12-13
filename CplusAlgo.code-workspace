@@ -12,6 +12,12 @@
     },
     {
       "path": "002-Recursive"
+    },
+    {
+      "path": "002-ex1"
+    },
+    {
+      "path": "003-Greedy"
     }
   ],
   "settings": {
